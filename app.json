@@ -13,6 +13,9 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "This app uses FaceID to authenticate the user"
+      },
       "supportsTablet": true
     },
     "android": {
