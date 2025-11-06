@@ -17,8 +17,7 @@ import PasswordList from './components/PasswordList';
 import AddPasswordPage from './components/AddPasswordPage';
 import SettingsPage from './components/SettingsPage';
 import PasswordDetailsModal from './components/PasswordDetailsModal';
-import { savePasswordsToStorage } from './utils/storageHandler';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { savePasswordsToStorage, loadPasswordsFromStorage } from './utils/storageHandler';
 
 export default function App() {
   const [passwords, setPasswords] = useState([]);
@@ -35,18 +34,16 @@ export default function App() {
   const navIndicatorAnim = useRef(new Animated.Value(0)).current;
   const navTextScale = useRef(new Animated.Value(1)).current;
 
-  useEffect(() => {
-    const loadPasswords = async () => {
-      try {
-        const saved = await AsyncStorage.getItem('passwords');
-        if (saved) {
-          setPasswords(JSON.parse(saved));
-        }
-      } catch (e) {
-        console.error('Ошибка загрузки', e);
-      }
-    };
-    loadPasswords();
+ useEffect(() => {
+  const loadPasswords = async () => {
+    try {
+      const loadedPasswords = await loadPasswordsFromStorage();
+      setPasswords(loadedPasswords);
+    } catch (e) {
+      console.error('Ошибка загрузки', e);
+    }
+  };
+  loadPasswords();
   }, []);
 
   const getIndicatorPosition = (tabName) => {
