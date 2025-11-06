@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,31 +8,32 @@ import {
   Alert,
   ToastAndroid,
   Platform,
-  Modal,
   Image,
-  Switch,
+  Animated,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { generatePassword } from './utils/passwordGenerator';
 import PasswordList from './components/PasswordList';
-import AddPasswordModal from './components/AddPasswordModal';
+import AddPasswordPage from './components/AddPasswordPage';
+import SettingsPage from './components/SettingsPage';
 import PasswordDetailsModal from './components/PasswordDetailsModal';
 import { savePasswordsToStorage } from './utils/storageHandler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
   const [passwords, setPasswords] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [site, setSite] = useState('');
-  const [email, setEmail] = useState('');
-  const [customPassword, setCustomPassword] = useState('');
+  const [activeTab, setActiveTab] = useState('passwords');
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [visibleItems, setVisibleItems] = useState({});
-  const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [language, setLanguage] = useState('ru');
+
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const navIndicatorAnim = useRef(new Animated.Value(0)).current;
+  const navTextScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     const loadPasswords = async () => {
@@ -47,6 +48,70 @@ export default function App() {
     };
     loadPasswords();
   }, []);
+
+  const getIndicatorPosition = (tabName) => {
+    switch (tabName) {
+      case 'passwords': return 0;
+      case 'generator': return 1;
+      case 'settings': return 2;
+      default: return 0;
+    }
+  };
+
+  const handleTabChange = (tabName) => {
+    if (activeTab === tabName) return;
+    
+    const newPosition = getIndicatorPosition(tabName);
+    
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 20,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(navTextScale, {
+        toValue: 0.9,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setActiveTab(tabName);
+      Animated.spring(navIndicatorAnim, {
+        toValue: newPosition,
+        tension: 100,
+        friction: 10,
+        useNativeDriver: true,
+      }).start();
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.spring(navTextScale, {
+          toValue: 1,
+          tension: 100,
+          friction: 10,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  };
+
+  const indicatorPosition = navIndicatorAnim.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: [0, 116.7, 233.4]
+  });
 
   const handleDelete = (index) => {
     const updatedPasswords = passwords.filter((_, i) => i !== index);
@@ -66,26 +131,42 @@ export default function App() {
     }
   };
 
-  const handleSaveData = () => {
-    if (!site.trim() || !email.trim() || !customPassword.trim()) {
-      Alert.alert('Ошибка', 'Пожалуйста, заполните все поля, включая пароль.');
+  const handleAddPassword = (site, email, password) => {
+    if (!site.trim() || !email.trim() || !password.trim()) {
+      Alert.alert(
+        language === 'ru' ? 'Ошибка' : 'Error',
+        language === 'ru' ? 'Пожалуйста, заполните все поля, включая пароль.' : 'Please fill in all fields, including password.'
+      );
       return;
     }
     const updatedPasswords = [
-      { site, email, password: customPassword },
+      { site, email, password },
       ...passwords,
     ];
     setPasswords(updatedPasswords);
     savePasswordsToStorage(updatedPasswords);
-    setSite('');
-    setEmail('');
-    setCustomPassword('');
-    setModalVisible(false);
+
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(
+        language === 'ru' ? 'Пароль сохранён' : 'Password saved', 
+        ToastAndroid.SHORT
+      );
+    } else {
+      Alert.alert(
+        language === 'ru' ? 'Успех' : 'Success',
+        language === 'ru' ? 'Пароль сохранён' : 'Password saved'
+      );
+    }
+
+    handleTabChange('passwords');
   };
 
-  const handleGenerateAndSave = () => {
+  const handleGenerateAndSave = (site, email) => {
     if (!site.trim() || !email.trim()) {
-      Alert.alert('Ошибка', 'Пожалуйста, заполните поля "Сайт" и "Email" перед генерацией пароля.');
+      Alert.alert(
+        language === 'ru' ? 'Ошибка' : 'Error',
+        language === 'ru' ? 'Пожалуйста, заполните поля "Сайт" и "Email" перед генерацией пароля.' : 'Please fill in "Site" and "Email" fields before generating password.'
+      );
       return;
     }
     const newPassword = generatePassword();
@@ -95,24 +176,33 @@ export default function App() {
     ];
     setPasswords(updatedPasswords);
     savePasswordsToStorage(updatedPasswords);
-    setSite('');
-    setEmail('');
-    setCustomPassword('');
-    setModalVisible(false);
 
     if (Platform.OS === 'android') {
-      ToastAndroid.show('Пароль сгенерирован и сохранён', ToastAndroid.SHORT);
+      ToastAndroid.show(
+        language === 'ru' ? 'Пароль сгенерирован и сохранён' : 'Password generated and saved',
+        ToastAndroid.SHORT
+      );
     } else {
-      Alert.alert('Успех', 'Пароль сгенерирован и сохранён');
+      Alert.alert(
+        language === 'ru' ? 'Успех' : 'Success',
+        language === 'ru' ? 'Пароль сгенерирован и сохранён' : 'Password generated and saved'
+      );
     }
+    handleTabChange('passwords');
   };
 
   const copyToClipboard = async (text, label) => {
     await Clipboard.setStringAsync(text);
     if (Platform.OS === 'android') {
-      ToastAndroid.show(`${label} скопирован(а)`, ToastAndroid.SHORT);
+      ToastAndroid.show(
+        `${label} ${language === 'ru' ? 'скопирован(а)' : 'copied'}`,
+        ToastAndroid.SHORT
+      );
     } else {
-      Alert.alert('Скопировано', `${label} скопирован(а)`);
+      Alert.alert(
+        language === 'ru' ? 'Скопировано' : 'Copied',
+        `${label} ${language === 'ru' ? 'скопирован(а)' : 'copied'}`
+      );
     }
   };
 
@@ -122,81 +212,80 @@ export default function App() {
     setDetailModalVisible(true);
   };
 
-  const markAsVisible = (index) => {
-    setVisibleItems(prev => ({ ...prev, [index]: true }));
-  };
-
-  const handleShowSettings = () => {
-    setSettingsModalVisible(true);
-  };
-
-  const handleCloseSettings = () => {
-    setSettingsModalVisible(false);
+  const renderActivePage = () => {
+    switch (activeTab) {
+      case 'passwords':
+        return (
+          <>
+            <View style={[styles.tableHeader, isDarkTheme && styles.darkTableHeader]}>
+              <Text style={[styles.headerCell, { flex: 0.8 }, isDarkTheme && styles.darkText]}>
+                {language === 'ru' ? 'Сервис' : 'Service'}
+              </Text>
+              <Text style={[styles.headerCell, { flex: 1 }, isDarkTheme && styles.darkText]}>
+                {language === 'ru' ? 'Логин' : 'Login'}
+              </Text>
+              <Text style={[styles.headerCell, { flex: 1 }, isDarkTheme && styles.darkText]}>
+                {language === 'ru' ? 'Пароль' : 'Password'}
+              </Text>
+              <Text style={[styles.headerCell, { flex: 1.2 }, isDarkTheme && styles.darkText]}>
+                {language === 'ru' ? 'Подробнее' : 'Details'}
+              </Text>
+            </View>
+            <PasswordList
+              passwords={passwords}
+              onShowDetails={handleShowDetails}
+              onCopy={copyToClipboard}
+              isDarkTheme={isDarkTheme}
+              language={language}
+            />
+          </>
+        );
+      case 'generator':
+        return (
+          <AddPasswordPage
+            onAddPassword={handleAddPassword}
+            onGeneratePassword={handleGenerateAndSave}
+            isDarkTheme={isDarkTheme}
+            language={language}
+          />
+        );
+      case 'settings':
+        return (
+          <SettingsPage
+            isDarkTheme={isDarkTheme}
+            setIsDarkTheme={setIsDarkTheme}
+            language={language}
+            setLanguage={setLanguage}
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   return (
     <View style={[styles.container, isDarkTheme && styles.darkContainer]}>
-      <View style={styles.topBar}>
-        <TouchableOpacity style={styles.settingsButton} onPress={handleShowSettings}>
-          <Image
-            source={require('./assets/icons/equalizersoutline_114523.png')}
-            style={[
-              styles.settingsIcon,
-              { tintColor: isDarkTheme ? 'white' : 'black' }
-            ]}
-          />
-        </TouchableOpacity>
+      {activeTab === 'passwords' && (
+        <View style={styles.topBar}>
+          <View style={{width: 40}} />
+          <Text style={[styles.title, isDarkTheme && styles.darkTitle]}>
+            {language === 'ru' ? 'SafePass' : 'SafePass'}
+          </Text>
+          <View style={{width: 40}} />
+        </View>
+      )}
 
-
-        <Text style={[styles.title, isDarkTheme && styles.darkTitle]}>
-          {language === 'ru' ? 'SafePass' : 'SafePass'}
-        </Text>
-        <View style={{width: 40}} />
-      </View>
-
-      <View style={[styles.tableHeader, isDarkTheme && styles.darkTableHeader]}>
-        <Text style={[styles.headerCell, { flex: 0.8 }, isDarkTheme && styles.darkText]}>
-          {language === 'ru' ? 'Сервис' : 'Service'}
-        </Text>
-        <Text style={[styles.headerCell, { flex: 1 }, isDarkTheme && styles.darkText]}>
-          {language === 'ru' ? 'Логин' : 'Login'}
-        </Text>
-        <Text style={[styles.headerCell, { flex: 1 }, isDarkTheme && styles.darkText]}>
-          {language === 'ru' ? 'Пароль' : 'Password'}
-        </Text>
-        <Text style={[styles.headerCell, { flex: 1.2 }, isDarkTheme && styles.darkText]}>
-          {language === 'ru' ? 'Подробнее' : 'Details'}
-        </Text>
-      </View>
-
-      <PasswordList
-        passwords={passwords}
-        visibleItems={visibleItems}
-        markAsVisible={index => setVisibleItems(prev => ({ ...prev, [index]: true }))}
-        onShowDetails={handleShowDetails}
-        onCopy={copyToClipboard}
-        isDarkTheme={isDarkTheme}
-        language={language}
-      />
-
-      <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
-        <Text style={[styles.fabText, isDarkTheme && styles.darkfabText]}>+</Text>
-      </TouchableOpacity>
-
-      <AddPasswordModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onSave={handleSaveData}
-        onGenerate={handleGenerateAndSave}
-        site={site}
-        setSite={setSite}
-        email={email}
-        setEmail={setEmail}
-        customPassword={customPassword}
-        setCustomPassword={setCustomPassword}
-        isDarkTheme={isDarkTheme}
-        language={language}
-      />
+      <Animated.View 
+        style={[
+          styles.pageContainer,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
+        {renderActivePage()}
+      </Animated.View>
 
       <PasswordDetailsModal
         visible={detailModalVisible}
@@ -210,49 +299,72 @@ export default function App() {
         language={language}
       />
 
-      <Modal
-        visible={settingsModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={handleCloseSettings}
-      >
-        <View style={styles.settingsModalContainer}>
-          <View style={[styles.settingsModalContent, isDarkTheme && styles.darkModalContent]}>
-            <Text style={[styles.modalTitle, isDarkTheme && styles.darkTitle]}>
-              {language === 'ru' ? 'Настройки' : 'Settings'}
-            </Text>
-            <View style={styles.settingRow}>
-              <Text style={[styles.settingLabel, isDarkTheme && styles.darkText]}>
-                {language === 'ru' ? 'Темная тема' : 'Dark Theme'}
-              </Text>
-              <Switch
-                value={isDarkTheme}
-                onValueChange={setIsDarkTheme}
-              />
-            </View>
-            <View style={styles.settingRow}>
-              <Text style={[styles.settingLabel, isDarkTheme && styles.darkText]}>
-                {language === 'ru' ? 'Язык приложения' : 'App Language'}
-              </Text>
-              <TouchableOpacity onPress={() => setLanguage(language === 'ru' ? 'en' : 'ru')}>
-                <Text style={[styles.languageButton, isDarkTheme && styles.darkText]}>
-                  {language === 'ru' ? 'Русский' : 'English'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity onPress={handleCloseSettings} style={styles.closeSettingsButton}>
-              <Text style={{color: '#ff0707ff', fontSize: 16}}>
-                {language === 'ru' ? 'Закрыть' : 'Close'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
       <View style={[styles.bannerContainer, isDarkTheme && styles.darkBannerContainer]}>
-        <Text style={[styles.bannerText, isDarkTheme && styles.darkText]}>Рекламный баннер</Text>
+        <Text style={[styles.bannerText, isDarkTheme && styles.darkText]}>
+          {language === 'ru' ? 'Рекламный баннер' : 'Ad Banner'}
+        </Text>
       </View>
 
-      <StatusBar style="auto" />
+      <View style={[styles.navBar, isDarkTheme && styles.darkNavBar]}>
+        <Animated.View 
+          style={[
+            styles.navIndicator,
+            {
+              transform: [{ translateX: indicatorPosition }]
+            }
+          ]}
+        />
+        
+        <TouchableOpacity 
+          style={styles.navItem}
+          onPress={() => handleTabChange('passwords')}
+        >
+          <Animated.Text style={[
+            styles.navText, 
+            isDarkTheme && styles.darkNavText,
+            activeTab === 'passwords' && styles.activeNavText,
+            {
+              transform: [{ scale: navTextScale }]
+            }
+          ]}>
+            {language === 'ru' ? 'Главная' : 'Main'}
+          </Animated.Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.navItem}
+          onPress={() => handleTabChange('generator')}
+        >
+          <Animated.Text style={[
+            styles.navText, 
+            isDarkTheme && styles.darkNavText,
+            activeTab === 'generator' && styles.activeNavText,
+            {
+              transform: [{ scale: navTextScale }]
+            }
+          ]}>
+            {language === 'ru' ? 'Создать' : 'Generate'}
+          </Animated.Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.navItem}
+          onPress={() => handleTabChange('settings')}
+        >
+          <Animated.Text style={[
+            styles.navText, 
+            isDarkTheme && styles.darkNavText,
+            activeTab === 'settings' && styles.activeNavText,
+            {
+              transform: [{ scale: navTextScale }]
+            }
+          ]}>
+            {language === 'ru' ? 'Настройки' : 'Settings'}
+          </Animated.Text>
+        </TouchableOpacity>
+      </View>
+
+      <StatusBar style={isDarkTheme ? 'light' : 'dark'} />
     </View>
   );
 }
@@ -261,28 +373,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 10,
     paddingTop: 50,
   },
   darkContainer: {
     backgroundColor: '#2a2727ff',
+  },
+  pageContainer: {
+    flex: 1,
+    padding: 10,
+    marginBottom: 180,
   },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 10,
-  },
-  settingsButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  settingsIcon: {
-    width: 30,
-    height: 30,
-    resizeMode: 'contain',
+    paddingHorizontal: 10,
   },
   title: {
     fontSize: 24,
@@ -301,6 +407,7 @@ const styles = StyleSheet.create({
   },
   darkTableHeader: {
     backgroundColor: '#2a2727ff',
+    borderBottomColor: '#444',
   },
   darkText: {
     color: '#fff',
@@ -309,79 +416,58 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  fab: {
-    position: 'absolute',
-    right: 35,
-    bottom: 757,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  darkfabText: {
-    color: 'white',
-    fontSize: 30,
-    fontWeight: 400,
-    marginBottom: 3,
-    fontSize: 40,
-  },
-  fabText: {
-    color: 'black',
-    fontSize: 30,
-    fontWeight: 500,
-    marginBottom: 3,
-    fontSize: 40,
-  },
-  settingsModalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  settingsModalContent: {
-    width: '80%',
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-  },
-  darkModalContent: {
-    backgroundColor: '#333',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  settingRow: {
+  navBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    width: 350,
+    height: 60,
+    backgroundColor: '#ededed',
+    borderRadius: 30,
+    marginHorizontal: 'auto',
+    bottom: '4%',
+    overflow: 'hidden',
+  },
+  darkNavBar: {
+    backgroundColor: '#1a1a1a',
+  },
+  navItem: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 15,
+    paddingVertical: 10,
+    zIndex: 2,
   },
-  settingLabel: {
-    fontSize: 16,
+  navIndicator: {
+    position: 'absolute',
+    width: 116.7,
+    height: 50,
+    backgroundColor: '#007bff',
+    borderRadius: 25,
+    margin: 5,
+    zIndex: 1,
   },
-  languageButton: {
-    fontSize: 16,
-    color: '#007bff',
+  navText: {
+    fontSize: 14,
+    color: '#6c757d',
+    fontWeight: '500',
   },
-  closeSettingsButton: {
-    marginTop: 10,
-    alignSelf: 'center',
+  darkNavText: {
+    color: '#ccc',
+  },
+  activeNavText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   bannerContainer: {
     height: 100,
-    width: '110%',
+    width: '100%',
     backgroundColor: '#ededed',
     justifyContent: 'center',
     alignItems: 'center',
     borderTopWidth: 1,
+    borderBottomWidth: 1,
+    bottom: "8%",
     borderColor: '#ccc',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
   },
-
   darkBannerContainer: {
     backgroundColor: '#222',
   },

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
+
 const PasswordList = ({
   passwords,
   onShowDetails,
@@ -9,6 +10,7 @@ const PasswordList = ({
   language = 'ru',
 }) => {
   const [visibleItems, setVisibleItems] = useState({});
+
   const authenticateAndShow = async (index) => {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
@@ -32,6 +34,7 @@ const PasswordList = ({
       Alert.alert(language === 'ru' ? 'Ошибка' : 'Error', language === 'ru' ? 'Не удалось выполнить аутентификацию' : 'Failed to authenticate');
     }
   };
+
   return (
     <ScrollView style={[styles.table, isDarkTheme && styles.darkTable]}>
       {passwords.map((item, index) => {
@@ -73,9 +76,7 @@ const PasswordList = ({
               style={styles.infoButton}
               onPress={() => onShowDetails(item, index)}
             >
-              <Text style={[styles.infoButtonText, isDarkTheme && styles.darkText1]}>
-                {language === 'ru' ? 'Подробнее' : 'Details'}
-              </Text>
+              <Text style={[styles.infoButtonText, isDarkTheme && styles.darkText1]}>⋯</Text>
             </TouchableOpacity>
           </View>
         );
@@ -83,10 +84,10 @@ const PasswordList = ({
     </ScrollView>
   );
 };
+
 const styles = StyleSheet.create({
   table: {
     flex: 1,
-    marginTop: 10,
     backgroundColor: '#fff',
   },
   darkTable: {
@@ -118,17 +119,22 @@ const styles = StyleSheet.create({
     color: '#eee',
   },
   darkText1: {
-    color: '#007bff',
+    color: '#ffffffff',
   },
   infoButton: {
-    padding: 2,
-    borderRadius: 5,
-    flex: 1.2,
+  padding: 2,
+  borderRadius: 5,
+  flex: 1.2,
+  justifyContent: 'center',
+  alignItems: 'center',
   },
   infoButtonText: {
-    color: '#007bff',
+    color: '#000000ff',
     textAlign: 'center',
-    fontWeight: '700',
+    fontWeight: '900',
+    fontSize: 28,
+    lineHeight: 24, 
   },
 });
+
 export default PasswordList;
