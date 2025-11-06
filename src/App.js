@@ -35,16 +35,43 @@ export default function App() {
   const navTextScale = useRef(new Animated.Value(1)).current;
 
  useEffect(() => {
-  const loadPasswords = async () => {
-    try {
-      const loadedPasswords = await loadPasswordsFromStorage();
-      setPasswords(loadedPasswords);
-    } catch (e) {
-      console.error('Ошибка загрузки', e);
-    }
-  };
-  loadPasswords();
+    const loadPasswords = async () => {
+      try {
+        console.log('Загрузка паролей из хранилища...');
+        const loadedPasswords = await loadPasswordsFromStorage();
+        console.log('Загружено паролей:', loadedPasswords.length);
+        setPasswords(loadedPasswords);
+      } catch (e) {
+        console.error('Ошибка загрузки паролей', e);
+        try {
+          const saved = await AsyncStorage.getItem('passwords');
+          if (saved) {
+            const oldPasswords = JSON.parse(saved);
+            setPasswords(oldPasswords);
+            await savePasswordsToStorage(oldPasswords);
+          }
+        } catch (fallbackError) {
+          console.error('Fallback загрузка тоже не удалась:', fallbackError);
+        }
+      }
+    };
+    
+    loadPasswords();
   }, []);
+
+    useEffect(() => {
+    if (passwords.length > 0) {
+      const savePasswords = async () => {
+        try {
+          await savePasswordsToStorage(passwords);
+          console.log('Пароли автоматически сохранены');
+        } catch (e) {
+          console.error('Ошибка автосохранения паролей', e);
+        }
+      };
+      savePasswords();
+    }
+  }, [passwords]);
 
   const getIndicatorPosition = (tabName) => {
     switch (tabName) {
