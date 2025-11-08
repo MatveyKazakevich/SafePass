@@ -41,7 +41,7 @@ const PasswordList = ({
         const visible = !!visibleItems[index];
         return (
           <View key={index} style={[styles.row, isDarkTheme && styles.darkRow]}>
-            <TouchableOpacity style={[styles.cell, { flex: 0.7 }]}>
+            <TouchableOpacity style={[styles.cell, { flex: 0.8 }]}>
               <Text style={[styles.serviceText, isDarkTheme && styles.darkText]}>{item.site}</Text>
             </TouchableOpacity>
             <TouchableOpacity

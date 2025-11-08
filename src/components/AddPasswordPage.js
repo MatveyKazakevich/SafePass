@@ -22,7 +22,7 @@ const AddPasswordPage = ({
 
   const texts = {
     title: language === 'ru' ? 'Добавить пароль' : 'Add Password',
-    sitePlaceholder: language === 'ru' ? 'Название сайта или приложения' : 'Site or App Name',
+    sitePlaceholder: language === 'ru' ? 'Название сервиса' : 'Service name',
     loginPlaceholder: language === 'ru' ? 'Логин или email' : 'Login or Email',
     passwordPlaceholder: language === 'ru' ? 'Пароль' : 'Password',
     saveButton: language === 'ru' ? 'Сохранить пароль' : 'Save Password',
@@ -151,6 +151,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   button: {
+    flex: 1,
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',

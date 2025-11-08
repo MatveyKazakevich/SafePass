@@ -189,7 +189,7 @@ export default function App() {
     if (!site.trim() || !email.trim()) {
       Alert.alert(
         language === 'ru' ? 'Ошибка' : 'Error',
-        language === 'ru' ? 'Пожалуйста, заполните поля "Сайт" и "Email" перед генерацией пароля.' : 'Please fill in "Site" and "Email" fields before generating password.'
+        language === 'ru' ? 'Пожалуйста, заполните поля "Название сервиса" и "Email" перед генерацией пароля.' : 'Please fill in "Service name" and "Email" fields before generating password.'
       );
       return;
     }
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   pageContainer: {
     flex: 1,
     padding: 10,
-    marginBottom: 180,
+    marginBottom: 60,
   },
   topBar: {
     flexDirection: 'row',
@@ -442,8 +442,8 @@ const styles = StyleSheet.create({
   },
   navBar: {
     flexDirection: 'row',
-    width: 350,
-    height: 60,
+    width: '93%',
+    height: '7.6%',
     backgroundColor: '#ededed',
     borderRadius: 30,
     marginHorizontal: 'auto',
@@ -462,8 +462,8 @@ const styles = StyleSheet.create({
   },
   navIndicator: {
     position: 'absolute',
-    width: 116.7,
-    height: 50,
+    width: '33%',
+    height: '83%',
     backgroundColor: '#007bff',
     borderRadius: 25,
     margin: 5,
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   bannerContainer: {
-    height: 100,
+    height: '15%',
     width: '100%',
     backgroundColor: '#ededed',
     justifyContent: 'center',

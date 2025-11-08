@@ -172,22 +172,35 @@ const PasswordDetailsModal = ({
 
 const styles = StyleSheet.create({
   modalContainer: {
-    flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    backgroundColor: 'white', padding: 20, borderRadius: 10, width: '95%',
+    backgroundColor: 'white', 
+    padding: 20, 
+    borderRadius: 10, 
+    width: '95%',
   },
   darkModalContent: {
     backgroundColor: '#333',
   },
   modalTitle: {
-    fontSize: 20, fontWeight: 'bold', marginBottom: 20, textAlign: 'center',
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    marginBottom: 20, 
+    textAlign: 'center',
   },
   detailRow: {
-    flexDirection: 'row', alignItems: 'center', marginBottom: 15,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: 15,
   },
   detailLabel: {
-    fontWeight: 'bold', width: 70,
+    fontWeight: 'bold',
+    // width: 70,
+    width: '20%',
   },
   detailValue: {
     flex: 1,
@@ -196,14 +209,17 @@ const styles = StyleSheet.create({
     color: '#007bff',
   },
   copyButton: {
-    padding: 8, marginLeft: 5,
+    padding: 8, 
+    marginLeft: 5,
   },
   copyButtonText: {
     color: '#007bff',
     fontWeight: 'bold',
   },
   buttonsRow: {
-    flexDirection: 'row', justifyContent: 'space-between', marginTop: 20,
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    marginTop: 20,
   },
   buttonWrapper: {
     flex: 1, marginHorizontal: 5,
