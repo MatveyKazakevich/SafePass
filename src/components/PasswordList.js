@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   infoButton: {
   padding: 2,
   borderRadius: 5,
-  flex: 0.6,
+  flex: 1.2,
   justifyContent: 'center',
   alignItems: 'center',
   },
