@@ -242,16 +242,16 @@ export default function App() {
         return (
           <>
             <View style={[styles.tableHeader, isDarkTheme && styles.darkTableHeader]}>
-              <Text style={[styles.headerCell, { flex: 0.8 }, isDarkTheme && styles.darkText]}>
+              <Text style={[styles.headerCell, { flex: 1 }, isDarkTheme && styles.darkText]}>
                 {language === 'ru' ? 'Сервис' : 'Service'}
               </Text>
-              <Text style={[styles.headerCell, { flex: 1 }, isDarkTheme && styles.darkText]}>
+              <Text style={[styles.headerCell, { flex: 0.6 }, isDarkTheme && styles.darkText]}>
                 {language === 'ru' ? 'Логин' : 'Login'}
               </Text>
-              <Text style={[styles.headerCell, { flex: 1 }, isDarkTheme && styles.darkText]}>
+              <Text style={[styles.headerCell, { flex: 0.6 }, isDarkTheme && styles.darkText]}>
                 {language === 'ru' ? 'Пароль' : 'Password'}
               </Text>
-              <Text style={[styles.headerCell, { flex: 1.2 }, isDarkTheme && styles.darkText]}>
+              <Text style={[styles.headerCell, { flex: 0.7 }, isDarkTheme && styles.darkText]}>
                 {language === 'ru' ? 'Подробнее' : 'Details'}
               </Text>
             </View>
