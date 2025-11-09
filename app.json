@@ -12,11 +12,19 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "updates": {
+      "url": "https://u.expo.dev/e2678158-cbdb-45cd-a28e-783bf419d2c9",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "infoPlist": {
         "NSFaceIDUsageDescription": "This app uses FaceID to authenticate the user"
       },
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vadim1_1.passwordGenerator"
     },
     "android": {
       "adaptiveIcon": {
@@ -32,8 +40,15 @@
       "eas": {
         "projectId": "e2678158-cbdb-45cd-a28e-783bf419d2c9"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow SafePass to use Face ID."
+        }
+      ],
+      "expo-updates"
+    ]
   }
 }
-
-

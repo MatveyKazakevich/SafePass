@@ -18,6 +18,7 @@ import AddPasswordPage from './components/AddPasswordPage';
 import SettingsPage from './components/SettingsPage';
 import PasswordDetailsModal from './components/PasswordDetailsModal';
 import { savePasswordsToStorage, loadPasswordsFromStorage } from './utils/storageHandler';
+import BackupModal from './components/BackupModal';
 
 export default function App() {
   const [passwords, setPasswords] = useState([]);
@@ -28,6 +29,7 @@ export default function App() {
   const [visibleItems, setVisibleItems] = useState({});
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [language, setLanguage] = useState('ru');
+  const [backupModalVisible, setBackupModalVisible] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -136,6 +138,11 @@ export default function App() {
     inputRange: [0, 1, 2],
     outputRange: [0, 116.7, 233.4]
   });
+
+  const handleImportPasswords = (importedPasswords) => {
+    setPasswords(importedPasswords);
+    savePasswordsToStorage(importedPasswords);
+  };
 
   const handleDelete = (index) => {
     const updatedPasswords = passwords.filter((_, i) => i !== index);
@@ -280,6 +287,8 @@ export default function App() {
             setIsDarkTheme={setIsDarkTheme}
             language={language}
             setLanguage={setLanguage}
+            passwords={passwords}
+            onImportPasswords={handleImportPasswords}
           />
         );
       default:
