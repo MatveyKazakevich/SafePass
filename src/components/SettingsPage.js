@@ -138,7 +138,7 @@ const SettingsPage = ({
   };
 
   return (
-    <ScrollView style={[styles.container, isDarkTheme && styles.darkContainer]}>
+    <View style={[styles.container, isDarkTheme && styles.darkContainer]}>
       <View style={styles.content}>
         <Text style={[styles.title, isDarkTheme && styles.darkText]}>
           {language === 'ru' ? 'Настройки' : 'Settings'}
@@ -216,22 +216,8 @@ const SettingsPage = ({
             </>
           )}
         </View>
-        <View style={[styles.infoSection, isDarkTheme && styles.darkInfoSection]}>
-          <Text style={[styles.infoTitle, isDarkTheme && styles.darkText]}>
-            {language === 'ru' ? 'О приложении' : 'About App'}
-          </Text>
-          <Text style={[styles.infoText, isDarkTheme && styles.darkText]}>
-            {language === 'ru' 
-              ? 'SafePass - безопасное хранение паролей' 
-              : 'SafePass - secure password storage'
-            }
-          </Text>
-          <Text style={[styles.versionText, isDarkTheme && styles.darkText]}>
-            Version 1.0.0
-          </Text>
-        </View>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
@@ -342,33 +328,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#000',
-  },
-  infoSection: {
-    marginTop: 10,
-    padding: 15,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 15,
-  },
-  darkInfoSection: {
-    backgroundColor: '#333',
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-    color: '#000',
-  },
-  infoText: {
-    fontSize: 14,
-    marginBottom: 10,
-    textAlign: 'center',
-    color: '#666',
-  },
-  versionText: {
-    fontSize: 12,
-    color: '#999',
-    textAlign: 'center',
   },
 });
 
